@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HELP CRM | מערכת ניהול לידים</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&family=Rubik:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+    
+    <style>
+        :root {
+            --primary: #06D6A0;
+            --primary-dark: #05B888;
+            --secondary: #118AB2;
+            --accent: #06FFA5;
+            --bg: #F8FAFB;
+            --bg-white: #FFFFFF;
+            --text: #073B4C;
+            --text-light: #6B7280;
+            --navy: #073B4C;
+            --border: #E5E7EB;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --danger: #EF4444;
+            --purple: #8B5CF6;
+            
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            
+            --radius-sm: 6px;
+            --radius-md: 10px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --font-display: 'Rubik', sans-serif;
+            --font-body: 'Heebo', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text-light); }
+
+        /* Layout */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 260px;
+            background: var(--navy);
+            color: white;
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 8px;
+        }
+
+        .sidebar-subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 32px;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: var(--radius-md);
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 4px;
+            font-size: 15px;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        .nav-item.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            width: 24px;
+            text-align: center;
+        }
+
+        .nav-badge {
+            margin-right: auto;
+            background: var(--danger);
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .sidebar-user {
+            padding: 16px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .user-role {
+            font-size: 12px;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-right: 260px;
+            padding: 24px 32px;
+        }
+
+        /* Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-family: var(--font-display);
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-family: var(--font-body);
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg);
+            border-color: var(--text-light);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: var(--radius-sm);
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .stat-card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .stat-card-icon.blue { background: rgba(17, 138, 178, 0.1); }
+        .stat-card-icon.green { background: rgba(6, 214, 160, 0.1); }
+        .stat-card-icon.yellow { background: rgba(245, 158, 11, 0.1); }
+        .stat-card-icon.red { background: rgba(239, 68, 68, 0.1); }
+        .stat-card-icon.purple { background: rgba(139, 92, 246, 0.1); }
+
+        .stat-card-value {
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .stat-card-label {
+            font-size: 14px;
+            color: var(--text-light);
+        }
+
+        .stat-card-change {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .stat-card-change.positive { color: var(--success); }
+        .stat-card-change.negative { color: var(--danger); }
+
+        /* Filters */
+        .filters-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 10px 16px;
+            padding-right: 40px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 14px;
+            background: white;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236B7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 20px;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.1);
+        }
+
+        .filter-select {
+            padding: 10px 16px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Table */
+        .table-container {
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: var(--bg);
+            padding: 14px 16px;
+            text-align: right;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-light);
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table tr:hover {
+            background: var(--bg);
+            cursor: pointer;
+        }
+
+        .table tr.selected {
+            background: rgba(6, 214, 160, 0.05);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-badge.new {
+            background: rgba(139, 92, 246, 0.1);
+            color: #7C3AED;
+        }
+
+        .status-badge.followup_initial {
+            background: rgba(245, 158, 11, 0.1);
+            color: #D97706;
+        }
+
+        .status-badge.followup_qualified {
+            background: rgba(17, 138, 178, 0.1);
+            color: #0E7490;
+        }
+
+        .status-badge.interested {
+            background: rgba(6, 214, 160, 0.1);
+            color: #059669;
+        }
+
+        .status-badge.demo {
+            background: rgba(59, 130, 246, 0.1);
+            color: #2563EB;
+        }
+
+        .status-badge.closed_won {
+            background: rgba(16, 185, 129, 0.1);
+            color: #059669;
+        }
+
+        .status-badge.not_interested {
+            background: rgba(239, 68, 68, 0.1);
+            color: #DC2626;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: currentColor;
+        }
+
+        /* Lead Details Panel */
+        .lead-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 500px;
+            height: 100vh;
+            background: white;
+            box-shadow: var(--shadow-xl);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+
+        .lead-panel.open {
+            transform: translateX(0);
+        }
+
+        .panel-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 199;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+        }
+
+        .panel-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-title {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .panel-close {
+            width: 32px;
+            height: 32px;
+            border-radius: var(--radius-sm);
+            border: none;
+            background: var(--bg);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .panel-close:hover {
+            background: var(--border);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+        }
+
+        .panel-section {
+            margin-bottom: 28px;
+        }
+
+        .panel-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .info-item {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: var(--radius-md);
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--text-light);
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        /* Notes */
+        .notes-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .note-item {
+            background: var(--bg);
+            border-radius: var(--radius-md);
+            padding: 12px;
+            border-right: 3px solid var(--primary);
+        }
+
+        .note-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .note-author {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+
+        .note-date {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .note-text {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .note-input-container {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .note-input {
+            flex: 1;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 14px;
+            resize: none;
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Status Selector */
+        .status-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .status-option {
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-option:hover {
+            border-color: var(--primary);
+        }
+
+        .status-option.selected {
+            border-color: var(--primary);
+            background: rgba(6, 214, 160, 0.1);
+        }
+
+        /* Rejection Reason Modal */
+        .reason-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .reason-option {
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .reason-option:hover {
+            border-color: var(--primary);
+            background: var(--bg);
+        }
+
+        .reason-option.selected {
+            border-color: var(--primary);
+            background: rgba(6, 214, 160, 0.1);
+        }
+
+        .reason-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        /* Date Picker */
+        .date-picker {
+            margin-top: 12px;
+            padding: 12px;
+            background: var(--bg);
+            border-radius: var(--radius-md);
+        }
+
+        .date-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: var(--font-body);
+        }
+
+        /* Activity Timeline */
+        .activity-timeline {
+            position: relative;
+        }
+
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            right: 15px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--border);
+        }
+
+        .activity-item {
+            position: relative;
+            padding-right: 40px;
+            padding-bottom: 20px;
+        }
+
+        .activity-dot {
+            position: absolute;
+            right: 8px;
+            top: 4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--primary);
+        }
+
+        .activity-content {
+            background: var(--bg);
+            padding: 12px;
+            border-radius: var(--radius-md);
+        }
+
+        .activity-title {
+            font-weight: 500;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .activity-time {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        /* Notifications */
+        .notifications-badge {
+            position: relative;
+        }
+
+        .notifications-badge::after {
+            content: attr(data-count);
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: var(--danger);
+            color: white;
+            font-size: 10px;
+            font-weight: 600;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notifications-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 320px;
+            background: white;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            border: 1px solid var(--border);
+            z-index: 300;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 14px 16px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .notification-item:hover {
+            background: var(--bg);
+        }
+
+        .notification-item.unread {
+            background: rgba(6, 214, 160, 0.05);
+        }
+
+        .notification-title {
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .notification-time {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        /* Reminders */
+        .reminder-card {
+            background: linear-gradient(135deg, var(--warning) 0%, #F97316 100%);
+            color: white;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+        }
+
+        .reminder-card h4 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .reminder-card p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .empty-state-text {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 400;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 480px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-family: var(--font-display);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 14px;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(6, 214, 160, 0.1);
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 500;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .toast {
+            background: var(--navy);
+            color: white;
+            padding: 14px 20px;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-lg);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 300px;
+        }
+
+        .toast.success {
+            border-right: 4px solid var(--success);
+        }
+
+        .toast.error {
+            border-right: 4px solid var(--danger);
+        }
+
+        .toast.warning {
+            border-right: 4px solid var(--warning);
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .quick-action-btn {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .quick-action-btn:hover {
+            border-color: var(--primary);
+            background: var(--bg);
+        }
+
+        .quick-action-btn span:first-child {
+            font-size: 20px;
+        }
+
+        .quick-action-btn span:last-child {
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        /* Loading */
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 72px;
+                padding: 16px 8px;
+            }
+
+            .sidebar-logo, .sidebar-subtitle, .nav-item span:not(.nav-item-icon), .user-info {
+                display: none;
+            }
+
+            .nav-item {
+                justify-content: center;
+                padding: 12px;
+            }
+
+            .main-content {
+                margin-right: 72px;
+            }
+
+            .lead-panel {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main-content {
+                margin-right: 0;
+                padding: 16px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .filters-bar {
+                flex-direction: column;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, createContext, useContext } = React;
+        const { motion, AnimatePresence } = Motion;
+
+        // ==================== SUPABASE CONFIG ====================
+        // החלף את הערכים האלה בערכים שלך
+        const SUPABASE_URL = 'https://xrbzofqgyukkdjwumdft.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==================== CONSTANTS ====================
+        const STATUS_CONFIG = {
+            new: { label: 'חדש', color: '#8B5CF6', icon: '✨' },
+            followup_initial: { label: 'פולואפ ראשוני', color: '#F59E0B', icon: '📞' },
+            followup_qualified: { label: 'פולואפ איכותי', color: '#0EA5E9', icon: '⭐' },
+            interested: { label: 'מעוניין', color: '#10B981', icon: '👍' },
+            demo: { label: 'הדגמה', color: '#3B82F6', icon: '🎯' },
+            closed_won: { label: 'נסגר', color: '#059669', icon: '🎉' },
+            not_interested: { label: 'לא מעוניין', color: '#EF4444', icon: '❌' }
+        };
+
+        const REJECTION_REASONS = {
+            expensive: { label: 'יקר לי', icon: '💰' },
+            bad_timing: { label: 'טיימינג לא טוב', icon: '⏰' },
+            not_connected: { label: 'לא התחבר למוצר', icon: '🤷' }
+        };
+
+        // ==================== CONTEXT ====================
+        const AppContext = createContext();
+
+        // ==================== MOCK DATA (For demo - remove when connected to Supabase) ====================
+        const generateMockLeads = () => [
+            {
+                id: '1',
+                name: 'דני כהן',
+                phone: '054-1234567',
+                business_type: 'יועץ עסקי',
+                clients_per_day: '5-10',
+                status: 'new',
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                notes: [],
+                activities: [
+                    { type: 'created', text: 'ליד נוצר', created_at: new Date().toISOString() }
+                ]
+            },
+            {
+                id: '2',
+                name: 'מיכל לוי',
+                phone: '052-9876543',
+                business_type: 'מאמנת אישית',
+                clients_per_day: '3-5',
+                status: 'followup_initial',
+                created_at: new Date(Date.now() - 86400000).toISOString(),
+                updated_at: new Date().toISOString(),
+                notes: [
+                    { id: '1', text: 'דיברנו, ביקשה לחזור אליה בעוד שבוע', author: 'אריאל', created_at: new Date().toISOString() }
+                ],
+                activities: []
+            },
+            {
+                id: '3',
+                name: 'יוסי אברהם',
+                phone: '050-5555555',
+                business_type: 'צלם אירועים',
+                clients_per_day: '1-3',
+                status: 'followup_qualified',
+                created_at: new Date(Date.now() - 172800000).toISOString(),
+                updated_at: new Date().toISOString(),
+                notes: [
+                    { id: '1', text: 'מאוד מעוניין, מחכה להדגמה', author: 'אריאל', created_at: new Date().toISOString() }
+                ],
+                activities: []
+            },
+            {
+                id: '4',
+                name: 'שרה גולד',
+                phone: '053-1111111',
+                business_type: 'מעצבת פנים',
+                clients_per_day: '2-4',
+                status: 'interested',
+                created_at: new Date(Date.now() - 259200000).toISOString(),
+                updated_at: new Date().toISOString(),
+                notes: [],
+                activities: []
+            },
+            {
+                id: '5',
+                name: 'אבי רוזן',
+                phone: '058-2222222',
+                business_type: 'עורך דין',
+                clients_per_day: '10+',
+                status: 'not_interested',
+                rejection_reason: 'expensive',
+                created_at: new Date(Date.now() - 345600000).toISOString(),
+                updated_at: new Date().toISOString(),
+                notes: [
+                    { id: '1', text: 'אמר שזה יקר לו, אולי לחזור בעוד חודש', author: 'שותף', created_at: new Date().toISOString() }
+                ],
+                activities: []
+            }
+        ];
+
+        // ==================== COMPONENTS ====================
+
+        // Sidebar
+        const Sidebar = ({ activeView, setActiveView, notifications }) => {
+            const navItems = [
+                { id: 'dashboard', icon: '📊', label: 'דשבורד' },
+                { id: 'leads', icon: '👥', label: 'לידים' },
+                { id: 'reminders', icon: '🔔', label: 'תזכורות', badge: notifications.filter(n => !n.read).length },
+                { id: 'settings', icon: '⚙️', label: 'הגדרות' }
+            ];
+
+            return (
+                <aside className="sidebar">
+                    <div className="sidebar-logo">HELP</div>
+                    <div className="sidebar-subtitle">מערכת ניהול לידים</div>
+                    
+                    <nav className="sidebar-nav">
+                        {navItems.map(item => (
+                            <div
+                                key={item.id}
+                                className={`nav-item ${activeView === item.id ? 'active' : ''}`}
+                                onClick={() => setActiveView(item.id)}
+                            >
+                                <span className="nav-item-icon">{item.icon}</span>
+                                <span>{item.label}</span>
+                                {item.badge > 0 && <span className="nav-badge">{item.badge}</span>}
+                            </div>
+                        ))}
+                    </nav>
+
+                    <div className="sidebar-user">
+                        <div className="user-avatar">א</div>
+                        <div className="user-info">
+                            <div className="user-name">אריאל</div>
+                            <div className="user-role">מנהל</div>
+                        </div>
+                    </div>
+                </aside>
+            );
+        };
+
+        // Stats Cards
+        const StatsCards = ({ leads }) => {
+            const stats = [
+                {
+                    label: 'סה״כ לידים',
+                    value: leads.length,
+                    icon: '👥',
+                    color: 'blue',
+                    change: '+12%'
+                },
+                {
+                    label: 'לידים חדשים',
+                    value: leads.filter(l => l.status === 'new').length,
+                    icon: '✨',
+                    color: 'purple'
+                },
+                {
+                    label: 'בפולואפ',
+                    value: leads.filter(l => l.status.includes('followup')).length,
+                    icon: '📞',
+                    color: 'yellow'
+                },
+                {
+                    label: 'מעוניינים',
+                    value: leads.filter(l => l.status === 'interested' || l.status === 'demo').length,
+                    icon: '⭐',
+                    color: 'green'
+                },
+                {
+                    label: 'נסגרו',
+                    value: leads.filter(l => l.status === 'closed_won').length,
+                    icon: '🎉',
+                    color: 'green'
+                },
+                {
+                    label: 'שיעור המרה',
+                    value: leads.length > 0 
+                        ? Math.round((leads.filter(l => l.status === 'closed_won').length / leads.length) * 100) + '%'
+                        : '0%',
+                    icon: '📈',
+                    color: 'blue'
+                }
+            ];
+
+            return (
+                <div className="stats-grid">
+                    {stats.map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            className="stat-card"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.05 }}
+                        >
+                            <div className="stat-card-header">
+                                <span className="stat-card-label">{stat.label}</span>
+                                <div className={`stat-card-icon ${stat.color}`}>{stat.icon}</div>
+                            </div>
+                            <div className="stat-card-value">{stat.value}</div>
+                            {stat.change && (
+                                <div className="stat-card-change positive">
+                                    ↑ {stat.change} מהשבוע שעבר
+                                </div>
+                            )}
+                        </motion.div>
+                    ))}
+                </div>
+            );
+        };
+
+        // Leads Table
+        const LeadsTable = ({ leads, onSelectLead, searchQuery, statusFilter, dateFilter }) => {
+            const filteredLeads = leads.filter(lead => {
+                // Search filter
+                if (searchQuery) {
+                    const query = searchQuery.toLowerCase();
+                    if (!lead.name.toLowerCase().includes(query) && 
+                        !lead.phone.includes(query) &&
+                        !lead.business_type.toLowerCase().includes(query)) {
+                        return false;
+                    }
+                }
+
+                // Status filter
+                if (statusFilter && statusFilter !== 'all') {
+                    if (lead.status !== statusFilter) return false;
+                }
+
+                // Date filter
+                if (dateFilter) {
+                    const leadDate = new Date(lead.created_at).toDateString();
+                    const filterDate = new Date(dateFilter).toDateString();
+                    if (leadDate !== filterDate) return false;
+                }
+
+                return true;
+            });
+
+            const formatDate = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('he-IL', { day: 'numeric', month: 'short' });
+            };
+
+            const formatTime = (dateStr) => {
+                const date = new Date(dateStr);
+                return date.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+            };
+
+            if (filteredLeads.length === 0) {
+                return (
+                    <div className="table-container">
+                        <div className="empty-state">
+                            <div className="empty-state-icon">🔍</div>
+                            <div className="empty-state-title">לא נמצאו לידים</div>
+                            <div className="empty-state-text">נסה לשנות את הסינון או להוסיף לידים חדשים</div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="table-container">
+                    <table className="table">
+                        <thead>
+                            <tr>
+                                <th>שם</th>
+                                <th>טלפון</th>
+                                <th>סוג עסק</th>
+                                <th>סטטוס</th>
+                                <th>נוצר</th>
+                                <th>הערות</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredLeads.map((lead, i) => (
+                                <motion.tr
+                                    key={lead.id}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: i * 0.02 }}
+                                    onClick={() => onSelectLead(lead)}
+                                >
+                                    <td>
+                                        <strong>{lead.name}</strong>
+                                    </td>
+                                    <td style={{ direction: 'ltr', textAlign: 'right' }}>
+                                        {lead.phone}
+                                    </td>
+                                    <td>{lead.business_type}</td>
+                                    <td>
+                                        <span className={`status-badge ${lead.status}`}>
+                                            <span className="status-dot"></span>
+                                            {STATUS_CONFIG[lead.status]?.label}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>{formatDate(lead.created_at)}</div>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                                            {formatTime(lead.created_at)}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {lead.notes?.length > 0 && (
+                                            <span style={{ 
+                                                background: 'var(--bg)', 
+                                                padding: '4px 8px', 
+                                                borderRadius: '12px',
+                                                fontSize: '12px'
+                                            }}>
+                                                📝 {lead.notes.length}
+                                            </span>
+                                        )}
+                                    </td>
+                                </motion.tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        };
+
+        // Lead Panel
+        const LeadPanel = ({ lead, onClose, onUpdateLead, onAddNote }) => {
+            const [newNote, setNewNote] = useState('');
+            const [selectedStatus, setSelectedStatus] = useState(lead?.status || 'new');
+            const [rejectionReason, setRejectionReason] = useState(lead?.rejection_reason || '');
+            const [reminderDate, setReminderDate] = useState('');
+            const [showRejectionOptions, setShowRejectionOptions] = useState(false);
+
+            useEffect(() => {
+                if (lead) {
+                    setSelectedStatus(lead.status);
+                    setRejectionReason(lead.rejection_reason || '');
+                }
+            }, [lead]);
+
+            const handleStatusChange = (newStatus) => {
+                setSelectedStatus(newStatus);
+                if (newStatus === 'not_interested') {
+                    setShowRejectionOptions(true);
+                } else {
+                    setShowRejectionOptions(false);
+                    onUpdateLead(lead.id, { status: newStatus });
+                }
+            };
+
+            const handleRejectionReasonSelect = (reason) => {
+                setRejectionReason(reason);
+                if (reason === 'bad_timing') {
+                    // Show date picker
+                } else {
+                    onUpdateLead(lead.id, { 
+                        status: 'not_interested', 
+                        rejection_reason: reason 
+                    });
+                    setShowRejectionOptions(false);
+                }
+            };
+
+            const handleAddNote = () => {
+                if (!newNote.trim()) return;
+                onAddNote(lead.id, newNote);
+                setNewNote('');
+            };
+
+            const handleWhatsApp = () => {
+                const phone = lead.phone.replace(/\D/g, '');
+                window.open(`https://wa.me/972${phone.slice(1)}`, '_blank');
+            };
+
+            const handleCall = () => {
+                window.location.href = `tel:${lead.phone}`;
+            };
+
+            if (!lead) return null;
+
+            const formatDate = (dateStr) => {
+                return new Date(dateStr).toLocaleDateString('he-IL', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            };
+
+            return (
+                <>
+                    <div className={`panel-overlay ${lead ? 'open' : ''}`} onClick={onClose} />
+                    <motion.aside
+                        className={`lead-panel ${lead ? 'open' : ''}`}
+                        initial={{ x: '-100%' }}
+                        animate={{ x: lead ? 0 : '-100%' }}
+                        transition={{ type: 'spring', damping: 25 }}
+                    >
+                        <div className="panel-header">
+                            <h2 className="panel-title">{lead.name}</h2>
+                            <button className="panel-close" onClick={onClose}>✕</button>
+                        </div>
+
+                        <div className="panel-content">
+                            {/* Quick Actions */}
+                            <div className="quick-actions">
+                                <button className="quick-action-btn" onClick={handleWhatsApp}>
+                                    <span>💬</span>
+                                    <span>WhatsApp</span>
+                                </button>
+                                <button className="quick-action-btn" onClick={handleCall}>
+                                    <span>📞</span>
+                                    <span>התקשר</span>
+                                </button>
+                                <button className="quick-action-btn">
+                                    <span>📅</span>
+                                    <span>תזכורת</span>
+                                </button>
+                            </div>
+
+                            {/* Info */}
+                            <div className="panel-section" style={{ marginTop: '24px' }}>
+                                <div className="panel-section-title">פרטים</div>
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <div className="info-label">טלפון</div>
+                                        <div className="info-value" style={{ direction: 'ltr', textAlign: 'right' }}>
+                                            {lead.phone}
+                                        </div>
+                                    </div>
+                                    <div className="info-item">
+                                        <div className="info-label">סוג עסק</div>
+                                        <div className="info-value">{lead.business_type}</div>
+                                    </div>
+                                    <div className="info-item">
+                                        <div className="info-label">לקוחות ביום</div>
+                                        <div className="info-value">{lead.clients_per_day || 'לא צוין'}</div>
+                                    </div>
+                                    <div className="info-item">
+                                        <div className="info-label">נוצר</div>
+                                        <div className="info-value">{formatDate(lead.created_at)}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Status */}
+                            <div className="panel-section">
+                                <div className="panel-section-title">סטטוס</div>
+                                <div className="status-selector">
+                                    {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                                        <div
+                                            key={key}
+                                            className={`status-option ${selectedStatus === key ? 'selected' : ''}`}
+                                            onClick={() => handleStatusChange(key)}
+                                        >
+                                            {config.icon} {config.label}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Rejection Reason */}
+                                <AnimatePresence>
+                                    {showRejectionOptions && (
+                                        <motion.div
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="reason-selector"
+                                        >
+                                            <div className="panel-section-title" style={{ marginTop: '16px' }}>
+                                                סיבה
+                                            </div>
+                                            {Object.entries(REJECTION_REASONS).map(([key, config]) => (
+                                                <div
+                                                    key={key}
+                                                    className={`reason-option ${rejectionReason === key ? 'selected' : ''}`}
+                                                    onClick={() => handleRejectionReasonSelect(key)}
+                                                >
+                                                    <div className="reason-icon">{config.icon}</div>
+                                                    <span>{config.label}</span>
+                                                </div>
+                                            ))}
+
+                                            {rejectionReason === 'bad_timing' && (
+                                                <div className="date-picker">
+                                                    <label className="form-label">מתי לחזור?</label>
+                                                    <input
+                                                        type="date"
+                                                        className="date-input"
+                                                        value={reminderDate}
+                                                        onChange={(e) => setReminderDate(e.target.value)}
+                                                    />
+                                                    <button 
+                                                        className="btn btn-primary btn-sm"
+                                                        style={{ marginTop: '8px', width: '100%' }}
+                                                        onClick={() => {
+                                                            onUpdateLead(lead.id, {
+                                                                status: 'not_interested',
+                                                                rejection_reason: 'bad_timing',
+                                                                reminder_date: reminderDate
+                                                            });
+                                                            setShowRejectionOptions(false);
+                                                        }}
+                                                    >
+                                                        שמור תזכורת
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Notes */}
+                            <div className="panel-section">
+                                <div className="panel-section-title">הערות</div>
+                                <div className="notes-list">
+                                    {lead.notes?.length > 0 ? (
+                                        lead.notes.map(note => (
+                                            <div key={note.id} className="note-item">
+                                                <div className="note-header">
+                                                    <span className="note-author">{note.author}</span>
+                                                    <span className="note-date">
+                                                        {formatDate(note.created_at)}
+                                                    </span>
+                                                </div>
+                                                <div className="note-text">{note.text}</div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ 
+                                            color: 'var(--text-light)', 
+                                            fontSize: '14px',
+                                            textAlign: 'center',
+                                            padding: '20px'
+                                        }}>
+                                            אין הערות עדיין
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="note-input-container">
+                                    <textarea
+                                        className="note-input"
+                                        placeholder="הוסף הערה..."
+                                        rows={2}
+                                        value={newNote}
+                                        onChange={(e) => setNewNote(e.target.value)}
+                                    />
+                                    <button 
+                                        className="btn btn-primary"
+                                        onClick={handleAddNote}
+                                        disabled={!newNote.trim()}
+                                    >
+                                        הוסף
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Activity Timeline */}
+                            <div className="panel-section">
+                                <div className="panel-section-title">היסטוריית פעילות</div>
+                                <div className="activity-timeline">
+                                    {lead.activities?.map((activity, i) => (
+                                        <div key={i} className="activity-item">
+                                            <div className="activity-dot"></div>
+                                            <div className="activity-content">
+                                                <div className="activity-title">{activity.text}</div>
+                                                <div className="activity-time">
+                                                    {formatDate(activity.created_at)}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="activity-item">
+                                        <div className="activity-dot"></div>
+                                        <div className="activity-content">
+                                            <div className="activity-title">ליד נוצר</div>
+                                            <div className="activity-time">
+                                                {formatDate(lead.created_at)}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.aside>
+                </>
+            );
+        };
+
+        // Reminders View
+        const RemindersView = ({ leads, notifications, onMarkRead }) => {
+            const reminders = leads.filter(l => l.reminder_date);
+            const todayReminders = reminders.filter(l => {
+                const reminderDate = new Date(l.reminder_date).toDateString();
+                return reminderDate === new Date().toDateString();
+            });
+
+            return (
+                <div>
+                    <div className="page-header">
+                        <h1 className="page-title">🔔 תזכורות</h1>
+                    </div>
+
+                    {todayReminders.length > 0 && (
+                        <div style={{ marginBottom: '24px' }}>
+                            <h3 style={{ marginBottom: '12px', color: 'var(--warning)' }}>להיום</h3>
+                            {todayReminders.map(lead => (
+                                <div key={lead.id} className="reminder-card">
+                                    <h4>{lead.name}</h4>
+                                    <p>לחזור בנוגע ל: {REJECTION_REASONS[lead.rejection_reason]?.label}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    <h3 style={{ marginBottom: '12px' }}>התראות</h3>
+                    <div className="table-container">
+                        {notifications.length > 0 ? (
+                            notifications.map((notif, i) => (
+                                <div 
+                                    key={i} 
+                                    className={`notification-item ${!notif.read ? 'unread' : ''}`}
+                                    onClick={() => onMarkRead(i)}
+                                >
+                                    <div className="notification-title">{notif.title}</div>
+                                    <div className="notification-time">{notif.time}</div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-state">
+                                <div className="empty-state-icon">🔔</div>
+                                <div className="empty-state-title">אין התראות</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // Dashboard View
+        const DashboardView = ({ leads }) => {
+            const recentLeads = [...leads]
+                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                .slice(0, 5);
+
+            const statusCounts = Object.keys(STATUS_CONFIG).map(status => ({
+                status,
+                count: leads.filter(l => l.status === status).length,
+                ...STATUS_CONFIG[status]
+            }));
+
+            return (
+                <div>
+                    <div className="page-header">
+                        <h1 className="page-title">📊 דשבורד</h1>
+                    </div>
+
+                    <StatsCards leads={leads} />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                        {/* Status Breakdown */}
+                        <div className="table-container" style={{ padding: '20px' }}>
+                            <h3 style={{ marginBottom: '16px' }}>פירוט לפי סטטוס</h3>
+                            {statusCounts.map(item => (
+                                <div 
+                                    key={item.status}
+                                    style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '12px 0',
+                                        borderBottom: '1px solid var(--border)'
+                                    }}
+                                >
+                                    <span>
+                                        {item.icon} {item.label}
+                                    </span>
+                                    <strong>{item.count}</strong>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Recent Leads */}
+                        <div className="table-container" style={{ padding: '20px' }}>
+                            <h3 style={{ marginBottom: '16px' }}>לידים אחרונים</h3>
+                            {recentLeads.map(lead => (
+                                <div 
+                                    key={lead.id}
+                                    style={{ 
+                                        display: 'flex', 
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                        padding: '12px 0',
+                                        borderBottom: '1px solid var(--border)'
+                                    }}
+                                >
+                                    <div>
+                                        <strong>{lead.name}</strong>
+                                        <div style={{ fontSize: '12px', color: 'var(--text-light)' }}>
+                                            {lead.business_type}
+                                        </div>
+                                    </div>
+                                    <span className={`status-badge ${lead.status}`}>
+                                        {STATUS_CONFIG[lead.status]?.label}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Leads View
+        const LeadsView = ({ leads, onSelectLead, onAddLead }) => {
+            const [searchQuery, setSearchQuery] = useState('');
+            const [statusFilter, setStatusFilter] = useState('all');
+            const [dateFilter, setDateFilter] = useState('');
+
+            return (
+                <div>
+                    <div className="page-header">
+                        <h1 className="page-title">👥 לידים</h1>
+                        <div className="header-actions">
+                            <button className="btn btn-secondary" onClick={() => window.location.reload()}>
+                                🔄 רענן
+                            </button>
+                            <button className="btn btn-primary" onClick={onAddLead}>
+                                + ליד חדש
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="filters-bar">
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="חפש לפי שם, טלפון או עסק..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <select 
+                            className="filter-select"
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                        >
+                            <option value="all">כל הסטטוסים</option>
+                            {Object.entries(STATUS_CONFIG).map(([key, config]) => (
+                                <option key={key} value={key}>{config.label}</option>
+                            ))}
+                        </select>
+                        <input
+                            type="date"
+                            className="filter-select"
+                            value={dateFilter}
+                            onChange={(e) => setDateFilter(e.target.value)}
+                            style={{ minWidth: '160px' }}
+                        />
+                        {(searchQuery || statusFilter !== 'all' || dateFilter) && (
+                            <button 
+                                className="btn btn-secondary btn-sm"
+                                onClick={() => {
+                                    setSearchQuery('');
+                                    setStatusFilter('all');
+                                    setDateFilter('');
+                                }}
+                            >
+                                נקה פילטרים
+                            </button>
+                        )}
+                    </div>
+
+                    <LeadsTable 
+                        leads={leads}
+                        onSelectLead={onSelectLead}
+                        searchQuery={searchQuery}
+                        statusFilter={statusFilter}
+                        dateFilter={dateFilter}
+                    />
+                </div>
+            );
+        };
+
+        // Add Lead Modal
+        const AddLeadModal = ({ isOpen, onClose, onAdd }) => {
+            const [formData, setFormData] = useState({
+                name: '',
+                phone: '',
+                business_type: '',
+                clients_per_day: ''
+            });
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                onAdd(formData);
+                setFormData({ name: '', phone: '', business_type: '', clients_per_day: '' });
+                onClose();
+            };
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="modal-overlay" onClick={onClose}>
+                    <motion.div 
+                        className="modal"
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="modal-header">
+                            <h3 className="modal-title">ליד חדש</h3>
+                            <button className="panel-close" onClick={onClose}>✕</button>
+                        </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className="modal-body">
+                                <div className="form-group">
+                                    <label className="form-label">שם מלא *</label>
+                                    <input
+                                        className="form-input"
+                                        required
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">טלפון *</label>
+                                    <input
+                                        className="form-input"
+                                        required
+                                        type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">סוג עסק *</label>
+                                    <input
+                                        className="form-input"
+                                        required
+                                        value={formData.business_type}
+                                        onChange={(e) => setFormData({...formData, business_type: e.target.value})}
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label className="form-label">כמה לקוחות ביום?</label>
+                                    <input
+                                        className="form-input"
+                                        value={formData.clients_per_day}
+                                        onChange={(e) => setFormData({...formData, clients_per_day: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button type="button" className="btn btn-secondary" onClick={onClose}>
+                                    ביטול
+                                </button>
+                                <button type="submit" className="btn btn-primary">
+                                    הוסף ליד
+                                </button>
+                            </div>
+                        </form>
+                    </motion.div>
+                </div>
+            );
+        };
+
+        // Toast Component
+        const Toast = ({ message, type, onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(onClose, 3000);
+                return () => clearTimeout(timer);
+            }, []);
+
+            return (
+                <motion.div
+                    className={`toast ${type}`}
+                    initial={{ opacity: 0, x: -50 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -50 }}
+                >
+                    <span>{type === 'success' ? '✓' : type === 'error' ? '✕' : '⚠'}</span>
+                    <span>{message}</span>
+                </motion.div>
+            );
+        };
+
+        // Main App
+        const App = () => {
+            const [activeView, setActiveView] = useState('dashboard');
+            const [leads, setLeads] = useState(generateMockLeads());
+            const [selectedLead, setSelectedLead] = useState(null);
+            const [showAddModal, setShowAddModal] = useState(false);
+            const [notifications, setNotifications] = useState([
+                { title: 'ליד חדש: דני כהן', time: 'לפני 5 דקות', read: false },
+                { title: 'תזכורת: לחזור למיכל לוי', time: 'לפני שעה', read: false }
+            ]);
+            const [toasts, setToasts] = useState([]);
+            const [isLoading, setIsLoading] = useState(false);
+
+            // Add toast
+            const addToast = (message, type = 'success') => {
+                const id = Date.now();
+                setToasts(prev => [...prev, { id, message, type }]);
+            };
+
+            // Remove toast
+            const removeToast = (id) => {
+                setToasts(prev => prev.filter(t => t.id !== id));
+            };
+
+            // Load leads from Supabase
+            const loadLeads = async () => {
+                setIsLoading(true);
+                try {
+                    const { data, error } = await supabase
+                        .from('help_leads')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    if (data && data.length > 0) {
+                        setLeads(data);
+                    }
+                } catch (error) {
+                    console.error('Error loading leads:', error);
+                    // Keep mock data if Supabase fails
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+
+            // Subscribe to realtime updates
+            useEffect(() => {
+                loadLeads();
+
+                const subscription = supabase
+                    .channel('help_leads_changes')
+                    .on('postgres_changes', 
+                        { event: 'INSERT', schema: 'public', table: 'help_leads' },
+                        (payload) => {
+                            setLeads(prev => [payload.new, ...prev]);
+                            setNotifications(prev => [{
+                                title: `ליד חדש: ${payload.new.name}`,
+                                time: 'עכשיו',
+                                read: false
+                            }, ...prev]);
+                            addToast(`ליד חדש התקבל: ${payload.new.name}`);
+                        }
+                    )
+                    .subscribe();
+
+                return () => {
+                    subscription.unsubscribe();
+                };
+            }, []);
+
+            // Update lead
+            const handleUpdateLead = async (leadId, updates) => {
+                try {
+                    // Update locally first
+                    setLeads(prev => prev.map(l => 
+                        l.id === leadId ? { ...l, ...updates, updated_at: new Date().toISOString() } : l
+                    ));
+
+                    // Update selected lead if open
+                    if (selectedLead?.id === leadId) {
+                        setSelectedLead(prev => ({ ...prev, ...updates }));
+                    }
+
+                    // Update in Supabase
+                    const { error } = await supabase
+                        .from('help_leads')
+                        .update(updates)
+                        .eq('id', leadId);
+
+                    if (error) throw error;
+                    addToast('הליד עודכן בהצלחה');
+                } catch (error) {
+                    console.error('Error updating lead:', error);
+                    addToast('שגיאה בעדכון הליד', 'error');
+                }
+            };
+
+            // Add note
+            const handleAddNote = async (leadId, noteText) => {
+                const newNote = {
+                    id: Date.now().toString(),
+                    text: noteText,
+                    author: 'אריאל',
+                    created_at: new Date().toISOString()
+                };
+
+                const lead = leads.find(l => l.id === leadId);
+                const updatedNotes = [...(lead.notes || []), newNote];
+
+                try {
+                    setLeads(prev => prev.map(l => 
+                        l.id === leadId ? { ...l, notes: updatedNotes } : l
+                    ));
+
+                    if (selectedLead?.id === leadId) {
+                        setSelectedLead(prev => ({ ...prev, notes: updatedNotes }));
+                    }
+
+                    const { error } = await supabase
+                        .from('help_leads')
+                        .update({ notes: updatedNotes })
+                        .eq('id', leadId);
+
+                    if (error) throw error;
+                    addToast('הערה נוספה');
+                } catch (error) {
+                    console.error('Error adding note:', error);
+                    addToast('שגיאה בהוספת הערה', 'error');
+                }
+            };
+
+            // Add new lead
+            const handleAddLead = async (leadData) => {
+                const newLead = {
+                    id: Date.now().toString(),
+                    ...leadData,
+                    status: 'new',
+                    notes: [],
+                    activities: [],
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString()
+                };
+
+                try {
+                    setLeads(prev => [newLead, ...prev]);
+
+                    const { error } = await supabase
+                        .from('help_leads')
+                        .insert([leadData]);
+
+                    if (error) throw error;
+                    addToast('ליד נוסף בהצלחה');
+                } catch (error) {
+                    console.error('Error adding lead:', error);
+                }
+            };
+
+            // Mark notification as read
+            const handleMarkRead = (index) => {
+                setNotifications(prev => prev.map((n, i) => 
+                    i === index ? { ...n, read: true } : n
+                ));
+            };
+
+            return (
+                <div className="app-container">
+                    <Sidebar 
+                        activeView={activeView} 
+                        setActiveView={setActiveView}
+                        notifications={notifications}
+                    />
+                    
+                    <main className="main-content">
+                        {activeView === 'dashboard' && (
+                            <DashboardView leads={leads} />
+                        )}
+                        
+                        {activeView === 'leads' && (
+                            <LeadsView 
+                                leads={leads}
+                                onSelectLead={setSelectedLead}
+                                onAddLead={() => setShowAddModal(true)}
+                            />
+                        )}
+                        
+                        {activeView === 'reminders' && (
+                            <RemindersView 
+                                leads={leads}
+                                notifications={notifications}
+                                onMarkRead={handleMarkRead}
+                            />
+                        )}
+
+                        {activeView === 'settings' && (
+                            <div>
+                                <div className="page-header">
+                                    <h1 className="page-title">⚙️ הגדרות</h1>
+                                </div>
+                                <div className="table-container" style={{ padding: '40px', textAlign: 'center' }}>
+                                    <div className="empty-state-icon">🔧</div>
+                                    <div className="empty-state-title">בקרוב</div>
+                                    <div className="empty-state-text">
+                                        הגדרות המערכת יהיו זמינות בקרוב
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Lead Panel */}
+                    <LeadPanel
+                        lead={selectedLead}
+                        onClose={() => setSelectedLead(null)}
+                        onUpdateLead={handleUpdateLead}
+                        onAddNote={handleAddNote}
+                    />
+
+                    {/* Add Lead Modal */}
+                    <AddLeadModal
+                        isOpen={showAddModal}
+                        onClose={() => setShowAddModal(false)}
+                        onAdd={handleAddLead}
+                    />
+
+                    {/* Toasts */}
+                    <div className="toast-container">
+                        <AnimatePresence>
+                            {toasts.map(toast => (
+                                <Toast
+                                    key={toast.id}
+                                    message={toast.message}
+                                    type={toast.type}
+                                    onClose={() => removeToast(toast.id)}
+                                />
+                            ))}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Loading Overlay */}
+                    {isLoading && (
+                        <div className="loading-overlay">
+                            <div className="loading-spinner"></div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // Render
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
